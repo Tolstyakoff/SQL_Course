@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задачи SQL (Markdown)</title>
+    <!-- Подключаем Marked для парсинга Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fafafa;
+        }
+        .markdown-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        h2 {
+            font-size: 1.5em;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        code {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: #f6f8fa;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #f6f8fa;
+            border-radius: 5px;
+            padding: 16px;
+            overflow-x: auto;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.9em;
+        }
+        blockquote {
+            margin: 0;
+            padding-left: 1em;
+            border-left: 4px solid #dfe2e5;
+            color: #6a737d;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #eaecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="markdown-content" id="output"></div>
+
+    <!-- Исходный Markdown, сохранённый в script-блоке (не будет интерпретироваться браузером) -->
+    <script type="text/markdown" id="source-md">
+<!------------------------------------------------------------------------------->
+<!------------------------------------------------------------------------------->
+# Задачи SQL
+## Тема 1 - Простые выборки и фильтры
+### Задача 1.1
+Посчитать сумму покупки по каждой позиции заказа с учетом скидки. Вывести таблицу с полями -  номер заказа, код продукта, сумма в чеке (точность до двух знаков после заяпятой)
+*Пример вывода*
+|order_id |product_id| amount|
+|--|--|---|
+|10248	|11	|168.00|
+|10248	|42	|98.00|
+|10248	|72	|174.00|
+
+### Эталонное решение
+```	
+select	  order_id,
+			product_id,
+			round(unit_price*quantity-discount,2) as amount
+from order_details
+order by order_id
+```
+### Задача 1.2
+Вывести общее количество строк (позиций заказов) в таблице `order_details` и количество заказов (уникальные значения поля `order_id`
+*Пример вывода*
+|total |orders|
+|--|--|
+|2155	|830	|
+
+### Эталонное решение	
+```	
+select 	count(order_id) as total,
+		   count(distinct order_id) as orders
+from order_details
+```
+### Задача 1.3
+Вывести список всех заказчиков из Мадрида. Результат отсортируйте по полю `company_name`
+*Пример вывода*
+|company_name|country|city|
+|--|--|---|
+|Bólido Comidas preparadas|Spain|Madrid|
+|FISSA Fabrica Inter. Salchichas S.A.|Spain|Madrid|
+
+### Эталонное решение
+```
+select company_name, country, city
+from customer 
+where city = 'Madrid'
+order by company_name
+```
+
+### Задача 1.4
+Вывести список всех заказчиков Германии и США. Результат отсортируйте по полям `country`, `city`
+*Пример вывода*
+|company_name|country|city|
+|--|--|---|
+|Germany|Aachen|Drachenblut Delikatessen|
+|Germany|Berlin|Alfreds Futterkiste|
+|Germany|Brandenburg|Königlich Essen|
+
+### Эталонное решение
+```
+select country, city, company_name  
+from customer c
+where country = 'Germany' OR c.country = 'USA'
+order by country, city
+```
+
+## Задача 1.5
+Вывести список всех заказов, в которых есть хотя бы одна позиция общей стоимостью (с учетом скидки) больше 5000. Результат осортировать по `номер заказа`
+*Пример вывода*
+|order_id|
+|--|
+|10353|
+|10372|
+
+### Эталонное решение
+```
+select 	distinct order_id
+from order_details
+where (unit_price*quantity-discount) > 5000
+order by order_id
+```
+
+## Тема 2 - Простые агрегации
+### Задача 2.1
+Посчитать среднюю стоимость одной позиции в заказе с учетом скидки. Вывести с точностью до трех знаков после запятой.
+*Пример вывода*
+|avg_sum_pos |
+|--|
+|628.519|
+
+### Эталонное решение
+```
+select round(avg(unit_price*quantity-discount),3) as avg_sum_pos
+from  order_details
+```
+### Задача 2.2
+
+Посчитать количествовсех заказов, в которых есть хотя бы одна позиция общей стоимостью (с учетом скидки) больше 5000. 
+|cnt_order|
+|--|
+|19|
+
+### Эталонное решение
+```
+select 	count(distinct order_id)
+from order_details
+where (unit_price*quantity-discount) > 5000
+```
+<!------------------------------------------------------------------------------->
+<!------------------------------------------------------------------------------->
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const source = document.getElementById('source-md').textContent;
+            const output = document.getElementById('output');
+            // Опции marked: включаем поддержку GFM (таблицы, переносы строк и т.д.)
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+                headerIds: true,
+                mangle: false,
+                langPrefix: 'language-',
+            });
+            output.innerHTML = marked.parse(source);
+        });
+    </script>
+</body>
+</html>
